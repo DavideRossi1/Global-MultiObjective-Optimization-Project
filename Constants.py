@@ -26,7 +26,7 @@ CARSIZE=(2,2)
 
 # Boolean. If True, environment becomes a continuous space, hence you can exit the environment 
 # from one side and re-enter from the opposite side:
-PACMAN=False       
+PACMAN=True       
 
 # String, or 0. If you want to use a old policy, set with the name of the file containing the policy. 
 # Otherwise, set with 0 to train a new policy:
@@ -51,27 +51,8 @@ PLOTSTEPS=True
 
 # Integer. Time in milliseconds between each step in the case PLOTSTEPS=True. 
 # Increase it to slow down the animation:  
-WAIT=1             
-
-# Agent algorithm to be used for training: SARSA, Qlearning, ExpectedSARSA:
-AGENT="SARSA"      
-
-# Double in [0,1]. Discount factor for temporal difference learning:
-GAMMA=1            
-
-# Positive double. Learning rate for temporal difference learning:
-LEARNING_RATE=0.01 
-
-# Double in [0,1]. Epsilon used for the epsilon-greedy policy. 
-# 0 means no exploration, 1 means no exploitation:
-EPSILON=0.5      
-
-# Double in [0,1]. Epsilon decay factor: the epsilon used for the epsilon-greedy policy 
-# is multiplied by this factor at each step
-EPSDECAY=0.90      
-
-
-
+WAIT=1                  
+          
 
 
 
@@ -85,7 +66,6 @@ EPSDECAY=0.90
 
 NGAMES=200            # number of games to be played (used for training purposes, not for plotting)
 NSTEPS=10000000       # number of steps to be played (used for training purposes, not for plotting)
-QSIZE=1600            # size of the Qvalues array, used to save and load the policy, don't change it
 
 # routine to set the right path for files
 isPacman = "pacman" if PACMAN else "no_pacman"
@@ -97,24 +77,3 @@ if EXPORTTREENAME!=0:
     EXPORTTREE = isPacman+"/"+EXPORTTREENAME
 if SAVESCORESNAME!=0:
     SAVESCORES = "scores/"+isPacman+"/"+SAVESCORESNAME
-
-
-
-
-
-# if PACMAN:
-#     if IMPORTPOLICYNAME!=0:
-#         IMPORTPOLICY="policies/pacman/"+AGENT+"/"+IMPORTPOLICYNAME
-#     if EXPORTPOLICYNAME!=0:
-#         EXPORTPOLICY="policies/pacman/"+AGENT+"/"+EXPORTPOLICYNAME
-#     if SAVESCORESNAME!=0:    
-#         SAVESCORES="scores/pacman/"+AGENT+"/"+SAVESCORESNAME
-# else:
-#     if IMPORTPOLICYNAME!=0:
-#         IMPORTPOLICY="policies/no_pacman/"+AGENT+"/"+IMPORTPOLICYNAME
-#     if EXPORTPOLICYNAME!=0:
-#         EXPORTPOLICY="policies/no_pacman/"+AGENT+"/"+EXPORTPOLICYNAME
-#     if SAVESCORESNAME!=0:    
-#         SAVESCORES="scores/no_pacman/"+AGENT+"/"+SAVESCORESNAME
-
-    

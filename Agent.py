@@ -16,7 +16,7 @@ class Agent:
             self.bestIndividualCompiled = None
             self.learnAgent()   
         else:
-            self.bestIndividual = self.loadIndividualFromFile(individualPath)
+            self.bestIndividual = self.loadIndividualFrom(individualPath)
             self.compileBestIndividual() 
         
     def compileBestIndividual(self):
@@ -49,7 +49,6 @@ class Agent:
 
     def buildToolBox(self):        
         self.toolbox = base.Toolbox()
-
         creator.create("FitnessMax", base.Fitness, weights=(1.0,))
         creator.create("Individual", gp.PrimitiveTree, fitness=creator.FitnessMax, pset=self.pset)
 
@@ -79,7 +78,7 @@ class Agent:
         stats.register("std", np.std)
         stats.register("min", np.min)
         stats.register("max", np.max)
-            # if desired, save the scores in a file
+        # if desired, save the scores in a file
         if C.SAVESCORESNAME!=0:
             f=open(C.SAVESCORES,'a')
             comments="#Algorithm: {}, Speed: {}, Boost: {}, PM: {}, Env size: {}, Car size: {},\n#Counter: {}, Nsteps: {}, Gamma: {}, LearnRate: {}, Eps: {}, Epsdecay: {}\n".format(C.AGENT,C.SPEED,C.BOOST,C.PACMAN,C.ENVSIZE,C.CARSIZE,C.COUNTER,C.NSTEPS,C.GAMMA,C.LEARNING_RATE,C.EPSILON,C.EPSDECAY)
@@ -89,7 +88,7 @@ class Agent:
         self.bestIndividual = hof[0]
         self.compileBestIndividual()
         
-    def saveReadableTreeInFile(self,file):
+    def saveTreeImageIn(self,file):
         nodes, edges, labels = gp.graph(self.bestIndividual)
         g = pgv.AGraph()
         g.add_nodes_from(nodes)
@@ -100,12 +99,12 @@ class Agent:
             n.attr["label"] = labels[i]
         g.draw(file) 
         
-    def saveIndividualInFile(self,file):
+    def saveIndividualIn(self,file):
         f = open(file, "w")
         f.write(str(self.bestIndividual))
         f.close()
 
-    def loadIndividualFromFile(self,file):
+    def loadIndividualFrom(self,file):
         f = open(file, "r")
         indStr = f.read()
         f.close()
