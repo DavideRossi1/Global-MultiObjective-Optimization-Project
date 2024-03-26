@@ -9,14 +9,24 @@ SPEED=1
 BOOST=1       
 
  # Integer. Maximum score that can be reached, game restarts after it is reached:     
-MAXSCORE=10000    
+MAXSCORE=10   
 
 # Integer. Number of points to be scored before increasing the speed of the enemy cars, 
 # hence increasing the difficulty. Set it to a high value to maintain the enemy speed constant:
-COUNTER=10000000   
+COUNTER=10   
 
 # Couple of integers. Height and width of the environment:
 ENVSIZE=(10,10)
+
+POPSIZE=100
+
+CXPROBABILITY=0.5
+
+MUTPROBABILITY=0.2
+
+NGENERATIONS=10
+
+TOURNAMENTSIZE=7
 
 # Couple of integers. Height and width of the cars. A good choice to have something realistic is 
 # ~1/4 of the height and ~1/6 of the width of the environment. Avoid setting them with too big 
@@ -28,22 +38,24 @@ CARSIZE=(2,2)
 # from one side and re-enter from the opposite side:
 PACMAN=True       
 
-# String, or 0. If you want to use a old policy, set with the name of the file containing the policy. 
-# Otherwise, set with 0 to train a new policy:
-IMPORTAGENTNAME=0#"testAgent.txt"
+# String, or 0. If you want to use a old agent, set with the name of the file containing it. 
+# Otherwise, set with 0 to train a new agent:
+IMPORTAGENTNAME="testAgent.txt"
 
-# String, or 0. If you want to save the learned policy in a file, set with the name of the file. 
+# String, or 0. If you want to save the agent in a file, in order to use it later, set with the name of the file.
+# Otherwise, set with 0:
+EXPORTAGENTNAME=0#"testAgent.txt"
+
+# String, or 0. If you want to save the tree image in a file, set with the name of the file in pdf format. 
 # Otherwise, set with 0:
 EXPORTTREENAME=0#"testTree.pdf"
 
-EXPORTAGENTNAME=0#"testAgent.txt"
-
 # String, or 0. If you want to save the scores in a file, set with the name of the file. 
 # Otherwise, set with 0:              
-SAVESCORESNAME=0#"testScores.txt"               
+SAVESCORESNAME="testScores.txt"               
 
 # Boolean. If True, the environment is printed in the terminal at each step:
-PRINTSTEPS=False   
+PRINTSTEPS=True   
 
 # Boolean. If True, the environment is plotted and animated 
 # (the animation won't stop until the user closes the plot):
@@ -51,7 +63,7 @@ PLOTSTEPS=True
 
 # Integer. Time in milliseconds between each step in the case PLOTSTEPS=True. 
 # Increase it to slow down the animation:  
-WAIT=1                  
+WAIT=100              
           
 
 
@@ -70,10 +82,10 @@ NSTEPS=10000000       # number of steps to be played (used for training purposes
 # routine to set the right path for files
 isPacman = "pacman" if PACMAN else "no_pacman"
 if IMPORTAGENTNAME!=0:
-    IMPORTAGENT = isPacman+"/"+IMPORTAGENTNAME
+    IMPORTAGENT = "agents/" + isPacman + "/" + IMPORTAGENTNAME
 if EXPORTAGENTNAME!=0:
-    EXPORTAGENT = isPacman+"/"+EXPORTAGENTNAME
+    EXPORTAGENT = "agents/" + isPacman + "/" + EXPORTAGENTNAME
 if EXPORTTREENAME!=0:
-    EXPORTTREE = isPacman+"/"+EXPORTTREENAME
+    EXPORTTREE  = "agents/" + isPacman + "/" + EXPORTTREENAME
 if SAVESCORESNAME!=0:
-    SAVESCORES = "scores/"+isPacman+"/"+SAVESCORESNAME
+    SAVESCORES  = "scores/" + isPacman + "/" + SAVESCORESNAME

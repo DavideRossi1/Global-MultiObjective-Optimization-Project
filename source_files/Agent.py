@@ -16,14 +16,21 @@ class Agent:
             self.bestIndividualCompiled = None
             self.learnAgent()   
         else:
-            self.bestIndividual = self.loadIndividualFrom(individualPath)
+            self.loadIndividualFrom(individualPath)
             self.compileBestIndividual() 
         
     def compileBestIndividual(self):
         self.bestIndividualCompiled = self.toolbox.compile(self.bestIndividual, pset = self.pset)
     
     def buildPset(self):
-        self.pset = gp.PrimitiveSetTyped("MAIN", [float, float, bool, float, bool], float, "IN")
+        """Build the primitive set for the genetic programming. A state is a tuple of 5 elements:
+        - if the enemy car is in front of you (bool)
+        - the vertical distance between you and the enemy car (float)
+        - if the enemy car is on the left of you (bool)
+        - the distance between you and the closest obstacle on the left (float)
+        - the distance between you and the closest obstacle on the right (float)
+        """
+        self.pset = gp.PrimitiveSetTyped("MAIN", [bool, float, bool, float, float], float, "IN")
 
         def protectedInv(x):
             return 1.0/x if x != 0 else 1  
@@ -64,14 +71,14 @@ class Agent:
         self.toolbox.register("individual", tools.initIterate, creator.Individual, self.toolbox.expr)
         self.toolbox.register("population", tools.initRepeat, list, self.toolbox.individual)
         self.toolbox.register("compile", gp.compile, pset=self.pset)
-        self.toolbox.register("select", tools.selTournament, tournsize=7)
+        self.toolbox.register("select", tools.selTournament, tournsize=C.TOURNAMENTSIZE)
         self.toolbox.register("mate", gp.cxOnePoint)
         self.toolbox.register("expr_mut", gp.genFull, min_=0, max_=2)
         self.toolbox.register("mutate", gp.mutUniform, expr=self.toolbox.expr_mut, pset=self.pset)
 
     def learnAgent(self):
         random.seed(318)
-        pop = self.toolbox.population(n=200)
+        pop = self.toolbox.population(n=C.POPSIZE)
         hof = tools.HallOfFame(1)
         stats = tools.Statistics(lambda ind: ind.fitness.values)
         stats.register("avg", np.mean)
@@ -80,13 +87,14 @@ class Agent:
         stats.register("max", np.max)
         # if desired, save the scores in a file
         if C.SAVESCORESNAME!=0:
-            f=open(C.SAVESCORES,'a')
-            comments="#Algorithm: {}, Speed: {}, Boost: {}, PM: {}, Env size: {}, Car size: {},\n#Counter: {}, Nsteps: {}, Gamma: {}, LearnRate: {}, Eps: {}, Epsdecay: {}\n".format(C.AGENT,C.SPEED,C.BOOST,C.PACMAN,C.ENVSIZE,C.CARSIZE,C.COUNTER,C.NSTEPS,C.GAMMA,C.LEARNING_RATE,C.EPSILON,C.EPSDECAY)
+            f=open(C.SAVESCORES,'w')
+            comments="# Speed: {}, Boost: {}, PM: {}, Env size: {}, Car size: {}, Counter: {}\n".format(C.SPEED,C.BOOST,C.PACMAN,C.ENVSIZE,C.CARSIZE,C.COUNTER)
             f.write(comments)
             f.close()
-        algorithms.eaSimple(pop, self.toolbox, 0.5, 0.2, 10, stats, halloffame=hof)
+        algorithms.eaSimple(pop, self.toolbox, C.CXPROBABILITY, C.MUTPROBABILITY, C.NGENERATIONS, stats, halloffame=hof)
         self.bestIndividual = hof[0]
         self.compileBestIndividual()
+      
         
     def saveTreeImageIn(self,file):
         nodes, edges, labels = gp.graph(self.bestIndividual)
@@ -108,4 +116,5 @@ class Agent:
         f = open(file, "r")
         indStr = f.read()
         f.close()
-        self.bestIndividual = gp.PrimitiveTree.from_string(indStr, pset=self.pset)            
+        self.bestIndividual = gp.PrimitiveTree.from_string(indStr, pset=self.pset) 
+        

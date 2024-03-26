@@ -32,9 +32,9 @@ def buildAndExtractBestIndividual():
     else:
         agent = Agent()
     if C.EXPORTTREENAME != 0:
-        agent.saveReadableTreeInFile(C.EXPORTTREE)
+        agent.saveTreeImageIn(C.EXPORTTREE)
     if C.EXPORTAGENTNAME != 0:
-        agent.saveIndividualInFile(C.EXPORTAGENT)
+        agent.saveIndividualIn(C.EXPORTAGENT)
     return agent.bestIndividualCompiled
 
 # Let's play!

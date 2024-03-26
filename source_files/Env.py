@@ -69,7 +69,7 @@ class Env:
         return leftWallDistance, rightWallDistance
 
     
-    def moveEnemyCar(self): 
+    def moveEnemyCar(self, enemyspeed): 
         """
         Move the enemy car along its vertical line, and return the game status
         """
@@ -78,11 +78,11 @@ class Env:
         # remove old enemy
         self.renderEnemyCar(0) 
         # compute the future position of the enemy car
-        futurePosition = self.envHeight - (self.enemy_y_position + C.SPEED)
+        futurePosition = self.envHeight - (self.enemy_y_position + enemyspeed)
         # if enemy is still entirely behind you after moving...
         if futurePosition >= 2*self.carHeight: 
             # ...simply move it
-            self.enemy_y_position += C.SPEED 
+            self.enemy_y_position += enemyspeed 
             self.renderEnemyCar(1)
         else:   
             # check the horizontal distance between the two cars
@@ -92,7 +92,7 @@ class Env:
             else:       
                 if futurePosition > 0: 
                 # enemy car is still partially in the environment after moving: move it
-                    self.enemy_y_position += C.SPEED
+                    self.enemy_y_position += enemyspeed
                     self.renderEnemyCar(1)
                 else:  
                     # enemy car exits the environment: increase score and generate a new enemy car
@@ -100,8 +100,14 @@ class Env:
                     self.generateEnemyCar()       
         return gameover, scoreIncrease
                           
+    def moveCar(self, action, carspeed):
+        """
+        Move your car along the horizontal axis, following the given action, and return the game status
+        """
+        return self.moveCarPM(action, carspeed) if C.PACMAN else self.moveCarNoPM(action, carspeed)      
     
-    def moveCar(self, action): 
+    
+    def moveCarNoPM(self, action, carspeed): 
         """
         Move your car along the horizontal axis, following the given action, and return the game status
         """
@@ -112,20 +118,20 @@ class Env:
                 pass
             case 1: #right   
                 # if the car is still entirely inside the environment after moving...
-                if self.playerPosition + self.carWidth + C.SPEED <= self.envWidth:
+                if self.playerPosition + self.carWidth + carspeed <= self.envWidth:
                     # ...move it: remove it from the old position, move it and render it in the new position
                     self.renderCar(0)
-                    self.playerPosition += C.SPEED
+                    self.playerPosition += carspeed
                     self.renderCar(1)
                 else:
                     # car crashed with the wall: game is over
                     gameover=True
             case 2: #left   
                 # if the car is still entirely inside the environment after moving...
-                if self.playerPosition - C.SPEED >= 0:    
+                if self.playerPosition - carspeed >= 0:    
                     # ...move it: remove it from the old position, move it and render it in the new position
                     self.renderCar(0)
-                    self.playerPosition -= C.SPEED
+                    self.playerPosition -= carspeed
                     self.renderCar(1)   
                 else:
                     # car crashed with the wall: game is over
@@ -153,26 +159,23 @@ class Env:
         return gameover    
     
     
-    def moveCarPM(self,action):
+    def moveCarPM(self, action, carspeed):
         """
         Move your car along the horizontal axis in a continuous space, following 
         the given action and with the given speed, and return the game status
         """
         self.renderCar(0)
-        
-        # for each action, check if the car didn't crash with the wall, then move the car
         # What happens is basically the same as in the movecar function, but the car can exit 
         # the environment from one side and re-enter from the opposite side, hence the position 
         # of the car is computed as the remainder of the division by the width of the environment 
         # and no crash with the wall is possible
         match action:
-            
             case 0: #stay still
                 pass
             case 1: #right
-                self.playerPosition = (self.playerPosition + C.SPEED)%self.envWidth     
+                self.playerPosition = (self.playerPosition + carspeed)%self.envWidth     
             case 2: #left
-                self.playerPosition = (self.playerPosition - C.SPEED)%self.envWidth 
+                self.playerPosition = (self.playerPosition - carspeed)%self.envWidth 
             # case 3: # right with boost
             #     self.playerPosition = (self.playerPosition + C.BOOST*C.SPEED)%self.width   
             # case 4: # left with boost
@@ -191,7 +194,6 @@ class Env:
             for j in range(self.envWidth):
                 res += "|X" if self.street[i,j] == 1 else "| "
             res += "|\n"  
-        res += "\n"
         # if you also want the score to be printed at each step, uncomment the following line
         #res.join('Score: ',self.score,'\n')  
         return res
@@ -202,16 +204,17 @@ class Env:
         """        
         leftEnemyDistance, rightEnemyDistance = self.enemyDistance()
         leftWallDistance, rightWallDistance = self.wallDistance()
-        #print("left and right wall distances: ",leftWallDistance,rightWallDistance)
-        #print("left and right enemy distances: ",leftEnemyDistance,rightEnemyDistance)
+        if C.PRINTSTEPS:
+            print("left and right wall distances: ",leftWallDistance,rightWallDistance)
+            print("left and right enemy distances: ",leftEnemyDistance,rightEnemyDistance)
         
         # find the closest obstacle (wall or enemy car) on the left and on the right
-        obstacleLeft  = min(leftWallDistance, leftEnemyDistance)
-        obstacleRight = min(rightWallDistance, rightEnemyDistance)
+        obstacleLeftDistance  = min(leftWallDistance, leftEnemyDistance)
+        obstacleRightDistance = min(rightWallDistance, rightEnemyDistance)
         # return the distance of the closest obstacle on the left and on the right
         # Notice that if C.PACMAN=True, walls will always be farther than the enemy car 
         # (hence obstacleLeft==leftEnemyDistance and obstacleRight==rightEnemyDistance)
-        return [obstacleLeft, obstacleRight]
+        return [obstacleLeftDistance, obstacleRightDistance]
 
     
     def frontObstacles(self):
@@ -225,11 +228,12 @@ class Env:
         # Boolean value that tells if the enemy car is on the left of the car 
         # (hence, if it is False the enemy is on the right)
         enemyLeftOrRight = (self.enemy_x_position < self.playerPosition)
-        #print("enemyInFront, enemyVertDist, leftright: ",enemyInFront,enemyVerticalDistance,enemyLeftOrRight)
+        if C.PRINTSTEPS:
+            print("enemyInFront, enemyVertDist, leftright: ",enemyInFront,enemyVerticalDistance,enemyLeftOrRight)
         return [enemyInFront, enemyVerticalDistance, enemyLeftOrRight]
         
     def get_state(self): 
         """
-        Return the state of the environment: a quintuple (enemyInFront, enemyVerticalDistance, enemyLeftOrRight, obstacleLeft, obstacleRight)
+        Return the state of the environment: a quintuple (enemyInFront, enemyVerticalDistance, enemyLeftOrRight, obstacleLeftDistance, obstacleRightDistance)
         """
         return (*self.frontObstacles(), *self.sideObstacles())
