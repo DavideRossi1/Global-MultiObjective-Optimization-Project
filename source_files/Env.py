@@ -184,7 +184,6 @@ class Env:
         # game is never over in this case: you can't crash with the wall
         return False
     
-        
     def __str__(self): 
         """
         Print the environment on terminal
@@ -198,6 +197,12 @@ class Env:
         #res.join('Score: ',self.score,'\n')  
         return res
     
+    def bin(self, distance):
+        return 0 if distance < C.SPEED else \
+               1 if distance < 2*C.SPEED else \
+               2 if distance < 2*C.BOOST*C.SPEED else \
+               3
+            
     def sideObstacles(self):
         """
         Return the horizontal distance of the enemy car and the walls, with respect to the car, using integers.
@@ -206,17 +211,17 @@ class Env:
         leftWallDistance, rightWallDistance = self.wallDistance()
         if C.PRINTSTEPS:
             print("left and right wall distances: ",leftWallDistance,rightWallDistance)
-            print("left and right enemy distances: ",leftEnemyDistance,rightEnemyDistance)
-        
+            print("left and right enemy distances: ",leftEnemyDistance,rightEnemyDistance) 
         # find the closest obstacle (wall or enemy car) on the left and on the right
         obstacleLeftDistance  = min(leftWallDistance, leftEnemyDistance)
         obstacleRightDistance = min(rightWallDistance, rightEnemyDistance)
         # return the distance of the closest obstacle on the left and on the right
         # Notice that if C.PACMAN=True, walls will always be farther than the enemy car 
         # (hence obstacleLeft==leftEnemyDistance and obstacleRight==rightEnemyDistance)
+        if not C.USEGA:
+            obstacleLeftDistance, obstacleRightDistance = self.bin(obstacleLeftDistance), self.bin(obstacleRightDistance)
         return [obstacleLeftDistance, obstacleRightDistance]
-
-    
+               
     def frontObstacles(self):
         """
         Return information about the vertical position of the enemy car with respect to the car, using integers and booleans
@@ -228,12 +233,20 @@ class Env:
         # Boolean value that tells if the enemy car is on the left of the car 
         # (hence, if it is False the enemy is on the right)
         enemyLeftOrRight = (self.enemy_x_position < self.playerPosition)
+        if not C.USEGA:
+            b = 0 if self.carWidth%(C.BOOST*C.SPEED)==0 else 1
+            c = 0 if self.carWidth%C.SPEED==0 else 1
+            enemyVerticalDistance = 0 if enemyInFront and (enemyVerticalDistance < C.SPEED) else \
+                                    1 if enemyInFront and (enemyVerticalDistance < 2*C.SPEED) else \
+                                    2 if enemyInFront and (enemyVerticalDistance < self.carWidth//(C.BOOST*C.SPEED)+b) else \
+                                    3 if enemyInFront and (enemyVerticalDistance < self.carWidth//C.SPEED+c) else \
+                                    4
         if C.PRINTSTEPS:
             print("enemyInFront, enemyVertDist, leftright: ",enemyInFront,enemyVerticalDistance,enemyLeftOrRight)
         return [enemyInFront, enemyVerticalDistance, enemyLeftOrRight]
-        
-    def get_state(self): 
+     
+    def getState(self): 
         """
         Return the state of the environment: a quintuple (enemyInFront, enemyVerticalDistance, enemyLeftOrRight, obstacleLeftDistance, obstacleRightDistance)
         """
-        return (*self.frontObstacles(), *self.sideObstacles())
+        return np.array((*self.frontObstacles(), *self.sideObstacles()), dtype=int)

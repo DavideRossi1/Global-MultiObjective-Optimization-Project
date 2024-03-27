@@ -4,6 +4,7 @@ from matplotlib.animation import FuncAnimation
 from Game import Game
 from Env import Env
 from Agent import Agent
+from AgentRL import AgentRL
 import Constants as C
 
 def main():
@@ -27,15 +28,14 @@ def main():
 
 
 def buildAndExtractBestIndividual():
-    if C.IMPORTAGENTNAME!=0:
-        agent = Agent(individualPath = C.IMPORTAGENT)
-    else:
-        agent = Agent()
-    if C.EXPORTTREENAME != 0:
+    agentClass = Agent if C.USEGA else AgentRL
+    agent = agentClass(C.IMPORTAGENT) if C.IMPORTAGENTNAME!=0 else agentClass()
+    if C.EXPORTTREENAME != 0 and C.USEGA:
         agent.saveTreeImageIn(C.EXPORTTREE)
     if C.EXPORTAGENTNAME != 0:
-        agent.saveIndividualIn(C.EXPORTAGENT)
-    return agent.bestIndividualCompiled
+        agent.saveAgentIn(C.EXPORTAGENT)
+    return agent.bestIndividualCompiled if C.USEGA else agent
+    
 
 # Let's play!
 main()

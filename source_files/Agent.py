@@ -16,7 +16,7 @@ class Agent:
             self.bestIndividualCompiled = None
             self.learnAgent()   
         else:
-            self.loadIndividualFrom(individualPath)
+            self.loadAgentFrom(individualPath)
             self.compileBestIndividual() 
         
     def compileBestIndividual(self):
@@ -62,12 +62,12 @@ class Agent:
         def fitness(individual):
             individualCompiled = self.toolbox.compile(individual)
             env = Env(*C.ENVSIZE, *C.CARSIZE)
-            game = Game(env, individualCompiled)
-            game.play(training=True)
+            game = Game(env, individualCompiled, training=True)
+            game.play()
             return game.globalReward,
         
         self.toolbox.register("evaluate", fitness)
-        self.toolbox.register("expr", gp.genHalfAndHalf, pset=self.pset, min_=2, max_=6)
+        self.toolbox.register("expr", gp.genHalfAndHalf, pset=self.pset, min_=C.MINTREESIZE, max_=C.MAXTREESIZE)
         self.toolbox.register("individual", tools.initIterate, creator.Individual, self.toolbox.expr)
         self.toolbox.register("population", tools.initRepeat, list, self.toolbox.individual)
         self.toolbox.register("compile", gp.compile, pset=self.pset)
@@ -94,8 +94,11 @@ class Agent:
         algorithms.eaSimple(pop, self.toolbox, C.CXPROBABILITY, C.MUTPROBABILITY, C.NGENERATIONS, stats, halloffame=hof)
         self.bestIndividual = hof[0]
         self.compileBestIndividual()
-      
-        
+  
+    # def __call__(self, *state):
+    #     action = self(state)
+    #     return 0 if abs(action)<0.001 else 1 if action>0 else 2
+
     def saveTreeImageIn(self,file):
         nodes, edges, labels = gp.graph(self.bestIndividual)
         g = pgv.AGraph()
@@ -107,12 +110,14 @@ class Agent:
             n.attr["label"] = labels[i]
         g.draw(file) 
         
-    def saveIndividualIn(self,file):
+    def saveAgentIn(self,file):
+        comments="Algorithm: {}, Speed: {}, Boost: {}, PM: {}, Env size: {}, Car size: {}, Counter: {}, Nsteps: {}, Gamma: {}, LearnRate: {}, Eps: {}, Epsdecay: {}\n".format(C.AGENT,C.SPEED,C.BOOST,C.PACMAN,C.ENVSIZE,C.CARSIZE,C.COUNTER,C.NSTEPS,C.GAMMA,C.LEARNING_RATE,C.EPSILON,C.EPSDECAY)
         f = open(file, "w")
+        f.write(comments)
         f.write(str(self.bestIndividual))
         f.close()
 
-    def loadIndividualFrom(self,file):
+    def loadAgentFrom(self,file):
         f = open(file, "r")
         indStr = f.read()
         f.close()

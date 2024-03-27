@@ -3,9 +3,10 @@ import matplotlib.pyplot as plt
 from Env import Env
 
 class Game():
-    def __init__(self, env, agent):
+    def __init__(self, env, agent, training=False):
         self.env = env
         self.agent = agent
+        self.training = training
         self.score = 0
         self.maxscore = 0
         self.gameOver = False
@@ -14,19 +15,37 @@ class Game():
         self.enemyspeed = C.SPEED
         self.counter = C.COUNTER
         
-    def play(self, training=False):
+    def play(self):
         """
         Play the game with the given speeds for the two cars
         """
         while not self.gameOver:
-            self.playStep(None, training)
+            self.playStep(None)
         
-    def playStep(self, frame, training=False):
+    def playStep(self, frame):
         """
         Play a step of the game: move both cars and check if the game is over
         """        
-        action = self.getAction()
+        # if desired, print the environment on the terminal
+        if C.PRINTSTEPS and (not self.training):
+            print(self.env)
+        state = self.env.getState()
+        action = self.getAction(state) 
+        #print(action)
+        if C.PRINTSTEPS and (not self.training):
+            print("Action: ", action)
         # move your car and check if it crashed with the wall
+        self.applyAction(state, action) 
+        
+    def getAction(self, state):
+        """
+        Return the action to be taken for the given state
+        """
+        action = self.agent(*state)
+        action_conv = 0 if abs(action) < 0.001 else 1 if action > 0 else 2
+        return action_conv if C.USEGA else action
+
+    def applyAction(self, state, action):
         gameover_wall = self.env.moveCar(action, self.carspeed)
          # move enemy car and check if it crashed with your car
         gameover_car, scoreIncrease = self.env.moveEnemyCar(self.enemyspeed) 
@@ -38,25 +57,19 @@ class Game():
             #print('GAME WON, score: ',self.score)
             self.crash()
             self.gameOver = True
-        self.globalReward += self.getReward(action)
+        reward = self.getReward(action)
+        self.globalReward += reward
         if C.SAVESCORESNAME != 0:
             self.saveScores()
-        if C.PLOTSTEPS and not training:
+        if C.PLOTSTEPS and (not self.training):
             plt.clf()  # Clear the current plot
             plt.imshow(self.env.street, cmap='gray', extent=[0, self.env.envWidth, 0, self.env.envHeight])  # Update the plot with the new env data
             plt.title(f"Current score: {self.score}, Max Score: {self.maxscore}")
-        self.updateCounter() 
-
-    def getAction(self):
-        # if desired, print the environment on the terminal
-        if C.PRINTSTEPS:
-            print(self.env)
-        state = self.env.get_state()
-        action = self.agent(*state)
-        if C.PRINTSTEPS:
-            print("Action: ", action)
-        return 0 if abs(action)<0.001 else 1 if action>0 else 2
-    
+        self.updateCounter()
+        if not C.USEGA:
+            newState = self.env.getState()
+            self.agent.updateQtable(state, action, reward, newState, self.getAction(newState), self.gameOver)
+          
     def getReward(self, action):
         if self.gameOver:
             self.crash()
@@ -71,8 +84,8 @@ class Game():
             distFromCenter = abs(self.env.playerPosition-C.ENVSIZE[1]/2)
             rewardForCenter = 0 if C.PACMAN else 2/(1+distFromCenter)
             rewardForMoving = 0 if (action==0) else -1
-            #rewardForBoost = -100  if action_conv==3 or action_conv==4 else 0
-            reward = distFromEnemyNormalized + rewardForCenter + rewardForMoving #+ rewardForBoost
+            rewardForBoost = -100  if action==3 or action==4 else 0
+            reward = distFromEnemyNormalized + rewardForCenter + rewardForMoving + rewardForBoost
         return reward
 
     def updateCounter(self):
