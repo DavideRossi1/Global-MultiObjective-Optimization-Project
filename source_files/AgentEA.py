@@ -7,8 +7,15 @@ from Game import Game
 import Constants as C
 import pygraphviz as pgv
 
-class Agent:
+class AgentEA():
+    """
+    Agent class that uses Evolutionary Algorithms to train and play the game
+    
+    Args:
+        individualPath (string, optional): the path of the file containing the individual to be imported. Defaults to None (build the individual from scratch)
+    """
     def __init__(self, individualPath=None):
+        
         self.buildPset()
         self.buildToolBox()
         if individualPath is None:
@@ -17,13 +24,16 @@ class Agent:
             self.learnAgent()   
         else:
             self.loadAgentFrom(individualPath)
-            self.compileBestIndividual() 
         
     def compileBestIndividual(self):
+        """
+        Compile the best individual to obtain a function that can be used to play the game
+        """
         self.bestIndividualCompiled = self.toolbox.compile(self.bestIndividual, pset = self.pset)
     
     def buildPset(self):
-        """Build the primitive set for the genetic programming. A state is a tuple of 5 elements:
+        """
+        Build the primitive set for the genetic programming. A state is a tuple of 5 elements:
         - if the enemy car is in front of you (bool)
         - the vertical distance between you and the enemy car (float)
         - if the enemy car is on the left of you (bool)
@@ -54,12 +64,24 @@ class Agent:
         #pset.addTerminal(True, bool)
         #pset.addEphemeralConstant("rand101", partial(random.uniform,0,100),float)
 
-    def buildToolBox(self):        
+    def buildToolBox(self):  
+        """"
+        Build the toolbox for the genetic algorithm
+        """     
         self.toolbox = base.Toolbox()
         creator.create("FitnessMax", base.Fitness, weights=(1.0,))
         creator.create("Individual", gp.PrimitiveTree, fitness=creator.FitnessMax, pset=self.pset)
 
         def fitness(individual):
+            """
+            Compute the fitness of the individual by let it play the game
+            
+            Args:
+                individual (DEAP tree): the individual to evaluate
+                
+            Returns:
+                float: the fitness of the individual, given as the global reward obtained by it
+            """
             individualCompiled = self.toolbox.compile(individual)
             env = Env(*C.ENVSIZE, *C.CARSIZE)
             game = Game(env, individualCompiled, training=True)
@@ -77,8 +99,11 @@ class Agent:
         self.toolbox.register("mutate", gp.mutUniform, expr=self.toolbox.expr_mut, pset=self.pset)
 
     def learnAgent(self):
-        random.seed(318)
-        pop = self.toolbox.population(n=C.POPSIZE)
+        """
+        Learn the agent using a Evolutionary Algorithm (EA) with the parameters specified in the Toolbox and in the Constants file
+        """
+        random.seed(314)
+        pop = self.toolbox.population(n = C.POPSIZE)
         hof = tools.HallOfFame(1)
         stats = tools.Statistics(lambda ind: ind.fitness.values)
         stats.register("avg", np.mean)
@@ -88,18 +113,20 @@ class Agent:
         # if desired, save the scores in a file
         if C.SAVESCORESNAME!=0:
             f=open(C.SAVESCORES,'w')
-            comments="# Speed: {}, Boost: {}, PM: {}, Env size: {}, Car size: {}, Counter: {}\n".format(C.SPEED,C.BOOST,C.PACMAN,C.ENVSIZE,C.CARSIZE,C.COUNTER)
+            comments="# Speed: {}, Boost: {}, PM: {}, Env size: {}, Car size: {}, Counter: {}\n".format(C.SPEED,C.BOOST,C.CONTINUOUSENV,C.ENVSIZE,C.CARSIZE,C.COUNTER)
             f.write(comments)
             f.close()
         algorithms.eaSimple(pop, self.toolbox, C.CXPROBABILITY, C.MUTPROBABILITY, C.NGENERATIONS, stats, halloffame=hof)
         self.bestIndividual = hof[0]
         self.compileBestIndividual()
   
-    # def __call__(self, *state):
-    #     action = self(state)
-    #     return 0 if abs(action)<0.001 else 1 if action>0 else 2
-
     def saveTreeImageIn(self,file):
+        """
+        Save a human readable tree image in the specified file
+
+        Args:
+            file (string): the file where to save the tree image, in pdf format
+        """
         nodes, edges, labels = gp.graph(self.bestIndividual)
         g = pgv.AGraph()
         g.add_nodes_from(nodes)
@@ -111,15 +138,25 @@ class Agent:
         g.draw(file) 
         
     def saveAgentIn(self,file):
-        comments="Algorithm: {}, Speed: {}, Boost: {}, PM: {}, Env size: {}, Car size: {}, Counter: {}, Nsteps: {}, Gamma: {}, LearnRate: {}, Eps: {}, Epsdecay: {}\n".format(C.AGENT,C.SPEED,C.BOOST,C.PACMAN,C.ENVSIZE,C.CARSIZE,C.COUNTER,C.NSTEPS,C.GAMMA,C.LEARNING_RATE,C.EPSILON,C.EPSDECAY)
+        """
+        Save the best individual in the specified file
+
+        Args:
+            file (string): the file where to save the best individual
+        """
         f = open(file, "w")
-        f.write(comments)
         f.write(str(self.bestIndividual))
         f.close()
 
     def loadAgentFrom(self,file):
+        """
+        Load the individual from the specified file
+
+        Args:
+            file (string): the file where to load the individual from
+        """
         f = open(file, "r")
         indStr = f.read()
         f.close()
         self.bestIndividual = gp.PrimitiveTree.from_string(indStr, pset=self.pset) 
-        
+        self.compileBestIndividual() 
