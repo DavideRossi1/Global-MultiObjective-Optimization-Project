@@ -1,5 +1,7 @@
-import Constants as C
 import matplotlib.pyplot as plt
+import time
+
+import Constants as C
 from Env import Env
 
 class Game():
@@ -29,6 +31,10 @@ class Game():
         """
         while not self.gameOver:
             self.playStep(None)
+            # wait for 1 second before the next step to slow down the animation
+            if C.PRINTSTEPS and (not self.training):
+                time.sleep(1)
+            
         
     def playStep(self, frame):
         """
@@ -36,22 +42,23 @@ class Game():
         
         Args:
             frame (pyplot frame): the frame to be updated in the animation (if PLOTSTEPS=True)
-        """        
+        """   
         if C.PRINTSTEPS and (not self.training):
             print(self.env)
+            print("Current score:", self.score)     
         state = self.env.getState()
         action = self.getAction(state) 
-        if C.PRINTSTEPS and (not self.training):
-            print("Action: ", action)
-        reward = self.applyAction(action) 
+        reward = self.applyAction(action)
+        # update the reward for GA training 
         self.globalReward += reward
-        if C.SAVESCORESNAME != 0:
+        if C.SAVESCORES and (not C.USEGA):
             self.saveScores()
         if C.PLOTSTEPS and (not self.training):
             plt.clf()  # Clear the current plot
             plt.imshow(self.env.street, cmap='gray', extent=[0, self.env.envWidth, 0, self.env.envHeight])  # Update the plot with the new env data
             plt.title(f"Current score: {self.score}, Max Score: {self.maxscore}")
         if not C.USEGA and self.training:
+            # update states and actions for RL training
             newState = self.env.getState()
             newAction = self.getAction(newState)
             self.agent.updateQtable(state, action, reward, newState, newAction, self.gameOver)
@@ -111,7 +118,7 @@ class Game():
         else:
             # reward in case of no crash is given by 4 terms:
             # 1) how far you are from the enemy car (normalized by the height of the environment): the farther you are, the better the reward
-            # 2) how close you are to the center of the environment (only if PACMAN=False): the closer you are, the better the reward
+            # 2) how close you are to the center of the environment (only for std environment): the closer you are, the better the reward
             # 3) if you moved, you get a slightly negative reward (to encourage the agent to move only when necessary and to stand still when waiting for the enemy)
             # 4) if you used the boost, you get a negative reward (to discourage the use of the it and only use it in case of emergency)
             rewardForEnemy = min(*self.env.enemyDistance())/float(C.ENVSIZE[1])
@@ -140,9 +147,8 @@ class Game():
         # update the max score
         if self.score > self.maxscore: 
             self.maxscore = self.score
-            #print('New max score: ',self.maxscore)     
         # save the new score in the specified file
-        if C.SAVESCORESNAME != 0:
+        if C.SAVESCORES and (not C.USEGA):
             self.saveScores()
         # reset the environment
         self.env = Env(*C.ENVSIZE, *C.CARSIZE)
@@ -152,7 +158,7 @@ class Game():
         """
         Save the scores in a file
         """
-        f = open(C.SAVESCORES,'a')
+        f = open(C.SAVESCORESPATH,'a')
         f.write(str(self.score) + ', '+str(self.maxscore) + '\n')
         f.close()
     

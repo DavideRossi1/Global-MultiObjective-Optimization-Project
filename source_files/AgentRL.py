@@ -1,4 +1,5 @@
 import numpy as np
+
 import Constants as C
 from Env import Env
 from Game import Game
@@ -71,9 +72,9 @@ class AgentRL():
         """
         Learn the agent using the TDControl model
         """
-        if C.SAVESCORESNAME!=0:
-            f=open(C.SAVESCORES,'w')
-            comments="# Speed: {}, Boost: {}, PM: {}, Env size: {}, Car size: {}, Counter: {}\n".format(C.SPEED,C.BOOST,C.CONTINUOUSENV,C.ENVSIZE,C.CARSIZE,C.COUNTER)
+        if C.SAVESCORES:
+            f=open(C.SAVESCORESPATH,'w')
+            comments="# Speed: {}, Boost: {}, ContEnv: {}, Env size: {}, Car size: {}, Counter: {}\n".format(C.SPEED,C.BOOST,C.CONTINUOUSENV,C.ENVSIZE,C.CARSIZE,C.COUNTER)
             f.write(comments)
             f.close()
         for i in range(C.NBATCHESRL):
@@ -115,7 +116,7 @@ class AgentRL():
             file (string): the name of the file where to save the policy
         """
         # A header is added to the file, containing the parameters used for training
-        comments="Algorithm: {}, Speed: {}, Boost: {}, PM: {}, Env size: {}, Car size: {}, Counter: {}, Gamma: {}, LearnRate: {}, Eps: {}, Epsdecay: {}".format(C.AGENT,C.SPEED,C.BOOST,C.CONTINUOUSENV,C.ENVSIZE,C.CARSIZE,C.COUNTER,C.GAMMA,C.LEARNING_RATE,C.EPSILON,C.EPSDECAY)
+        comments="Algorithm: {}, Speed: {}, Boost: {}, ContEnv: {}, Env size: {}, Car size: {}, Counter: {}, Gamma: {}, LearnRate: {}, Eps: {}, Epsdecay: {}".format(C.AGENT,C.SPEED,C.BOOST,C.CONTINUOUSENV,C.ENVSIZE,C.CARSIZE,C.COUNTER,C.GAMMA,C.LEARNING_RATE,C.EPSILON,C.EPSDECAY)
         onedimension_Qvalues=np.reshape(self.Qvalues, np.prod(self.spaceSize)*self.actionSize)
         np.savetxt(file,onedimension_Qvalues,header=comments)
     

@@ -1,4 +1,5 @@
 import numpy as np
+
 import Constants as C
 
 class Env:
@@ -225,11 +226,27 @@ class Env:
         """
         Print the environment on terminal
         """
-        res = ""
+        # https://www.w3.org/TR/xml-entity-names/025.html
+        res = "┏"
+        for i in range(self.envWidth-1):
+            res += "━━━┳"
+        res += "━━━┓\n"
         for i in range(self.envHeight):
             for j in range(self.envWidth):
-                res += "|X" if self.street[i,j] == 1 else "| "
-            res += "|\n"  
+                res += "┃ █ " if self.street[i,j] == 1 else "┃   "
+            res += "┃\n"
+            if i!=self.envHeight-1:
+                res += "┣"
+                for i in range(self.envWidth-1):
+                    res += "━━━╋"
+                res += "━━━┫\n"
+            else: 
+                res += "┗"
+                for i in range(self.envWidth-1):
+                    res += "━━━┻"
+                res += "━━━┛\n"
+             
+        
         # if you also want the score to be printed at each step, uncomment the following line
         #res.join('Score: ',self.score,'\n')  
         return res
@@ -258,10 +275,7 @@ class Env:
         """        
         leftEnemyDistance, rightEnemyDistance = self.enemyDistance()
         leftWallDistance, rightWallDistance = self.wallDistance()
-        if C.PRINTSTEPS:
-            print("left and right wall distances: ", leftWallDistance,rightWallDistance)
-            print("left and right enemy distances: ", leftEnemyDistance,rightEnemyDistance) 
-        # find the closest obstacle (wall or enemy car) on the left and on the right
+         # find the closest obstacle (wall or enemy car) on the left and on the right
         obstacleLeftDistance  = min(leftWallDistance, leftEnemyDistance)
         obstacleRightDistance = min(rightWallDistance, rightEnemyDistance)
         # return the distance of the closest obstacle on the left and on the right
@@ -295,8 +309,6 @@ class Env:
                                     2 if enemyInFront and (enemyVerticalDistance < self.carWidth//(C.BOOST*C.SPEED)+b) else \
                                     3 if enemyInFront and (enemyVerticalDistance < self.carWidth//C.SPEED+c) else \
                                     4
-        if C.PRINTSTEPS:
-            print("enemyInFront, enemyVertDist, leftright: ",enemyInFront,enemyVerticalDistance,enemyLeftOrRight)
         return [enemyInFront, enemyVerticalDistance, enemyLeftOrRight]
      
     def getState(self): 
