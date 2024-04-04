@@ -13,19 +13,20 @@ USEGA = True
 # from one side and re-enter from the opposite side:
 CONTINUOUSENV=False  
 
- # Integer. Starting speed of both you and the enemy cars:
-SPEED=1          
-
 # Integer. Speed multiplier: when boost is activated, your speed becomes BOOST*SPEED:
 BOOST=1       
 
- # Integer. Maximum score that can be reached, game restarts after it is reached:     
-MAXSCORE=1000   
-
 # Integer. Number of points to be scored before increasing the speed of the enemy cars, 
-# hence increasing the difficulty. Set it to a high value to maintain the enemy speed constant:
+# hence increasing the difficulty. Set it to a value higher than MAXSCORE to keep the 
+# enemy speed constant for the entire game:
 COUNTER=100000  
 
+ # Integer. Maximum score that can be reached, game restarts after it is reached:     
+MAXSCORE=1000  
+ 
+ # Integer. Starting speed of both you and the enemy cars:
+SPEED=1 
+         
 # Couple of integers. Height and width of the environment:
 ENVSIZE=(10,10)
 

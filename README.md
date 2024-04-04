@@ -7,10 +7,10 @@ The project has been run using `Python 3.10.13` but is expected to run with any 
 - `DEAP` library, which can be installed using `pip install deap`: this is the main package used to build and learn trees for GP, and a comprehensive documentation is available [here](https://deap.readthedocs.io/en/);
 - `pygraphviz` package, which can be installed using `pip install pygraphviz`, used to save readable trees in pdf files;
 - `numpy` to correctly pass the states space and save/load it to/from file;
-- `matplotlib` to plot the animations
-- `pandas` to handle the data
-- (optional) `PyGame`, which can be installed using `pip install pygame`, if you want to play the game with a Graphical User Interface
-- `operator`, `time` and `random` from the standard library;
+- `matplotlib` to plot the animations;
+- `pandas` to handle the data;
+- (optional) `PyGame`, which can be installed using `pip install pygame`, if you want to play the game with a Graphical User Interface;
+- `operator`, `time` and `random` from the standard library.
   
 ## How to run
 Clone the repository and move inside it:
@@ -29,13 +29,13 @@ The repository contains two main modules:
     The game will continue running: a new game is started 3 seconds after the previous game is over. To stop the application, just close the window.
 
 - [the main game](source_files/), which contains all the files needed to learn and run an agent to play the game. Before running the game, have a look at the [Constants file](source_files/Constants.py) and set them as you prefer. Then, run the game with
-```shell
-    python source_files/main.py
-```
-If no agent has been imported a new agent will be learnt using the parameters set, and some information will be printed to monitor the learning phase.
-After the learning phase has ended, the game will start (printed in the terminal, plotted or both, according to the parameters set).
+    ```shell
+        python source_files/main.py
+    ```
+    If no agent has been imported a new agent will be learnt using the parameters set, and some information will be printed to monitor the learning phase.
+    After the learning phase has ended, the game will start (printed in the terminal, plotted or both, according to the parameters set).
 
-Some learned agents are already available in the [agents folder](agents/).
+    Some learned agents are already available in the [agents folder](agents/) (not all the possible combinations, hence check if the agent you want to use is available, or learn it from scratch).
 
 #### Further note
 if you are on Linux OS and using a computer with a Rayzen CPU and an integrated AMD Radeon Graphics GPU, you may encounter a warning message like this when trying to plot the animation:
@@ -52,43 +52,42 @@ export LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libstdc++.so.6
 ```
 
 ## Implementation
-The agent have been tested with many different parameters and configurations. In particular, four main parameters can be set in the [Constants file](source_files/Constants.py):
+The agent have been tested with many different parameters and configurations. In particular, four main parameters can be set in the [Constants file](source_files/Constants.py), and setting the will also automatically set the paths for the agents and the scores files. The parameters are the following:
 - `USEGA`: if set to `True`, the game will use a tree-based genetic programming algorithm to learn the agent and/or to play it (depending if you chose to import an already learnt agent or to learn it from scratch), otherwise it will use a Reinforcement Learning algorithm (more specifically, a Temporal Difference algorithm, with SARSA, Q-Learning or Expected SARSA approach according to the parameters set);
 - `CONTINUOUSENV`: if set to `True`, the game will use a continuous state space, meaning that there will be no walls and the cars will be able to cross the boundary and reappear on the opposite side of the screen;
-- `BOOST`: if set to `True`, the player car will have a boost ability, which will allow to move faster in order to dodge the enemy.
-- `COUNTER`: each time the score reaches this value, the enemy cars will be faster, hence the game will be harder, and the counter will be reset: in this way you can simulate an increasing difficulty
-
+- `BOOST`: if set to a value greater than 1, the player car will have a boost ability, which will allow to move faster in order to dodge the enemy.
+- `COUNTER`: each time the score reaches this value, the enemy cars will be faster, hence the game will be harder, and the counter will be reset: in this way you can simulate an increasing difficulty.
 
 
 ## Results
 
-Some results obtained during the development of the project are available in the [scores](scores/) folder, subdivided by agent (GA or RL) and by space (standard or continuous). The corresponding learned agents are in the [agents](agents/) folder. We can have a look at some of the results:
+Some results obtained during the development of the project are available in the [scores](scores/) folder, subdivided by agent (GA or RL) and by space (standard or continuous). The corresponding learned agents are in the [agents](agents/) folder. We can have a look at some of them:
 
 ### Genetic Algorithm
 
-![RL-Expected SARSA, no boost, no counter](scores/AgentGA/StandardSpace/noBoostNoCounter/pop200_ngen15_tsz7.png)
+![RL-Expected SARSA, no boost, no counter](scores/AgentGA/StandardSpace/noBoost/noCounter/pop200_ngen15_tsz7.png)
 
-These is the average fitness obtained by a tree based Genetic Algorithm agent, with 200 as starting population, 15 generations and 7 as tournament size, and no boost nor increasing difficulty. We can see that the rewards are increasing, while the trees size converges towards about 35.
+This is the average fitness obtained by a tree based Genetic Algorithm agent, with 200 as starting population, 15 generations and 7 as tournament size, and no boost nor increasing difficulty. We can see that the rewards are increasing, while the trees size converges towards about 35.
 
-![RL-Expected SARSA, no boost, counter](scores/AgentGA/StandardSpace/noBoostCounter/pop200_ngen15_tsz10.png)
+![RL-Expected SARSA, no boost, counter](scores/AgentGA/StandardSpace/noBoost/counter/pop200_ngen15_tsz10.png)
 
 In this case instead we have an increasing difficulty. As we can see the fitness is still increasing, but it is lower than the previous case, since the agent has much more difficulty in dodging the enemies when their speed increases.
 
 ### Reinforcement Learning
 
-![RL-Expected SARSA, no boost, no counter](scores/AgentRL/StandardSpace/noBoostNoCounter/nbat100_bsz10_thr1000_agExpectedSARSA.png)
+![RL-Expected SARSA, no boost, no counter](scores/AgentRL/StandardSpace/noBoost/noCounter/neps100_epsz10_thr1000_ExpectedSARSA.png)
 
 This is the mean score obtained by an Expected SARSA RL agent, with no boost and no increasing difficulty. We can clearly see that the agent is able to learn how to play the game after a few generations.
 
-![RL-Expected SARSA, no boost, counter](scores/AgentRL/StandardSpace/noBoostCounter/nbat500_bsz10_thr800_agExpectedSARSA.png)
+![RL-Expected SARSA, no boost, counter](scores/AgentRL/StandardSpace/noBoost/counter/neps500_epsz10_thr800_ExpectedSARSA.png)
 
 In this case we also have an Expected SARSA RL agent, but we enabled the increasing difficulty. The agent is still able to learn how to play the game, but it is not able to reach the perfect score since after some time the difficulty becomes too high for the agent to handle.
 
-Finally, some animations of the agents playing the game are available:
+Finally, we can have a look at some animations of the agents playing the game:
 
 
-<img src="scores/AgentRL/StandardSpace/noBoostNoCounter/nbat100_bsz10_thr1000_agExpectedSARSA.gif"/>
+<img src="scores/AgentRL/StandardSpace/noBoost/noCounter/neps100_epsz10_thr1000_ExpectedSARSA.gif"/>
 
 
-<img src="scores/AgentRL/StandardSpace/noBoostCounter/nbat500_bsz10_thr800_agExpectedSARSA.gif"/>
+<img src="scores/AgentRL/StandardSpace/noBoost/counter/neps500_epsz10_thr800_ExpectedSARSA.gif"/>
 
