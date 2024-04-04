@@ -76,8 +76,6 @@ class Game():
         # - if we are using GA, the agent is a compiled tree, and the __call__ method of the tree is used to get the action
         # - if we are using RL, the agent is an instance of AgentRL, and the __call__ method of the agent is used to get the action
         action = self.agent(*state)
-        if not self.training:
-            print("Action:", action)
         if C.USEGA:
             return 0 if abs(action)<0.001 else 3 if action>3 else 4 if action<-3 else 1 if action>0 else 2
         else:

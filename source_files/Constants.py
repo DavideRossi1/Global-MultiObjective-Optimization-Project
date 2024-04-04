@@ -1,5 +1,10 @@
 
-# This file contains all the constants needed to set up the project. Set them as you prefer
+""" DOCUMENTATION
+This file contains all the constants needed to set up the project. Set them as you prefer.
+At the end of the file you'll find some routines to set the right paths for agents and scores
+files, according to the parameters set before. Some agents and scores files are already present,
+and you can create new ones by setting the right parameters and running the main.py file.
+"""
 
 # Boolean. Main parameter: decide if to use GA or RL to evolve the agent
 USEGA = True
@@ -19,12 +24,12 @@ BOOST=1
 # Integer. Number of points to be scored before increasing the speed of the enemy cars, 
 # hence increasing the difficulty. Set it to a value higher than MAXSCORE to keep the 
 # enemy speed constant for the entire game:
-COUNTER=100000  
+COUNTER=10000 
 
- # Integer. Maximum score that can be reached, game restarts after it is reached:     
+# Integer. Maximum score that can be reached, game restarts after it is reached:     
 MAXSCORE=1000  
  
- # Integer. Starting speed of both you and the enemy cars:
+# Integer. Starting speed of both you and the enemy cars:
 SPEED=1 
          
 # Couple of integers. Height and width of the environment:
@@ -77,7 +82,7 @@ CXPROBABILITY=0.5
 MUTPROBABILITY=0.2
 
 # Integer. Tournament size for tournament selection
-TOURNAMENTSIZE=10
+TOURNAMENTSIZE=7
 
 # Integer. Number of times the EA is repeated to evaluate the learning process
 NREPS=10
@@ -89,7 +94,7 @@ NREPS=10
 #######################################################
 
 # Integer. Maximum number of episodes to play before stopping the learning
-NEPISODES = 100
+NEPISODES = 20
 
 # Integer. Size of a single episode for learning.
 EPSIZE = 10

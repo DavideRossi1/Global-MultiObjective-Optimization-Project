@@ -1,0 +1,1 @@
+mul(mul(if_then_else(IN2, IN4, IN4), sub(IN4, IN4)), if_then_else(or_(IN0, IN0), mul(IN3, IN4), protectedInv(IN1)))

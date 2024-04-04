@@ -61,7 +61,7 @@ The agent have been tested with many different parameters and configurations. In
 
 ## Results
 
-Some results obtained during the development of the project are available in the [scores](scores/) folder, subdivided by agent (GA or RL) and by space (standard or continuous). The corresponding learned agents are in the [agents](agents/) folder. We can have a look at some of them:
+Some results obtained during the development of the project are available in the [scores](scores/) folder, subdivided acoording to the previous parameters. The corresponding learned agents are in the [agents](agents/) folder, which has the same structure. We can have a look at some of them:
 
 ### Genetic Algorithm
 
