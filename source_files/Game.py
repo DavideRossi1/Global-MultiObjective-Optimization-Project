@@ -38,7 +38,7 @@ class Game():
         
     def playStep(self, frame):
         """
-        Play a step of the game: extract the state, compute and apply a corresponding action and update the agent
+        Play a step of the game: extract the state, compute and apply a corresponding action, and update the agent
         
         Args:
             frame (pyplot frame): the frame to be updated in the animation (if PLOTSTEPS=True)
@@ -51,8 +51,6 @@ class Game():
         reward = self.applyAction(action)
         # update the reward for GA training 
         self.globalReward += reward
-        if C.SAVESCORES and (not C.USEGA):
-            self.saveScores()
         if C.PLOTSTEPS and (not self.training):
             plt.clf()  # Clear the current plot
             plt.imshow(self.env.street, cmap='gray', extent=[0, self.env.envWidth, 0, self.env.envHeight])  # Update the plot with the new env data
@@ -74,9 +72,16 @@ class Game():
         Returns:
             int: the action to take in the current state
         """
+        # The following line is used to extract the action from the agent:
+        # - if we are using GA, the agent is a compiled tree, and the __call__ method of the tree is used to get the action
+        # - if we are using RL, the agent is an instance of AgentRL, and the __call__ method of the agent is used to get the action
         action = self.agent(*state)
-        action_conv = 0 if abs(action) < 0.001 else 1 if action > 0 else 2
-        return action_conv if C.USEGA else action
+        if not self.training:
+            print("Action:", action)
+        if C.USEGA:
+            return 0 if abs(action)<0.001 else 3 if action>3 else 4 if action<-3 else 1 if action>0 else 2
+        else:
+            return action
 
     def applyAction(self, action):
         """
@@ -95,11 +100,6 @@ class Game():
         self.score += scoreIncrease    
         # game is over if your car crashed with the wall or with the enemy car
         self.gameOver = gameover_wall or gameover_car      
-        # if you reached the maximum score, you won the game: environment is reset
-        if self.score >= C.MAXSCORE:
-            #print('GAME WON, score: ',self.score)
-            self.crash()
-            self.gameOver = True
         return self.getReward(action)
         
     def getReward(self, action):
@@ -127,6 +127,10 @@ class Game():
             rewardForMoving = 0 if (action==0) else -1
             rewardForBoost = -100  if action==3 or action==4 else 0
             reward = rewardForEnemy + rewardForCenter + rewardForMoving + rewardForBoost
+            # if the score is greater than the max score, the game is over
+            if self.score >= C.MAXSCORE:
+                self.crash()
+                self.gameOver = True
         return reward
 
     def updateCounter(self):
@@ -138,7 +142,7 @@ class Game():
             self.counter += C.COUNTER # set the next score to be reached to increase the speed
         if self.gameOver:
             self.enemyspeed = C.SPEED # reset the speed 
-            self.counter = C.COUNTER 
+            self.counter = C.COUNTER # reset the counter
     
     def crash(self):  
         """
@@ -147,18 +151,7 @@ class Game():
         # update the max score
         if self.score > self.maxscore: 
             self.maxscore = self.score
-        # save the new score in the specified file
-        if C.SAVESCORES and (not C.USEGA):
-            self.saveScores()
         # reset the environment
         self.env = Env(*C.ENVSIZE, *C.CARSIZE)
         self.score = 0
-        
-    def saveScores(self):
-        """
-        Save the scores in a file
-        """
-        f = open(C.SAVESCORESPATH,'a')
-        f.write(str(self.score) + ', '+str(self.maxscore) + '\n')
-        f.close()
     

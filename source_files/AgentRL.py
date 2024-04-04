@@ -18,7 +18,7 @@ class AgentRL():
         self.actionSize = 5                  # number of possible actions
         self.learningRate = C.LEARNING_RATE  # learning rate
         self.algorithm = C.AGENT             # algorithm to be used: SARSA, Qlearning, ExpectedSARSA
-        self.eps = C.EPSILON  
+        self.eps = C.EPSILON                 # epsilon for the epsilon-greedy policy
         # if no policy is imported, initialize Qvalues to 0
         if individualPath is None:
             self.Qvalues = np.zeros( (*self.spaceSize, self.actionSize) )
@@ -29,7 +29,8 @@ class AgentRL():
         
     def updateQtable(self, state, action, reward, new_state, new_action, gameover):
         """
-        Update the policy for the current state and action, using the TDControl algorithm
+        Update the policy for the current state and action, using the TDControl algorithm.
+        This function is called at each step of the game, to update the policy with the new state and action.
         
          Args:
             state (array): the current state
@@ -60,7 +61,7 @@ class AgentRL():
             state (array): the current state
         """
         # start with a uniform probability of choosing each action
-        policy = np.ones(self.actionSize)*self.eps/self.actionSize
+        policy = np.ones(self.actionSize) * self.eps / self.actionSize
         # select the action(s) with the highest Qvalue for the given state
         best_value = np.max(self.Qvalues[(*state,)])
         best_actions = (self.Qvalues[(*state,)] == best_value)
@@ -72,22 +73,29 @@ class AgentRL():
         """
         Learn the agent using the TDControl model
         """
+        # Write a header in the file where the scores are saved
         if C.SAVESCORES:
-            f=open(C.SAVESCORESPATH,'w')
+            f=open(C.SAVESCORESPATH + "txt",'w')
             comments="# Speed: {}, Boost: {}, ContEnv: {}, Env size: {}, Car size: {}, Counter: {}\n".format(C.SPEED,C.BOOST,C.CONTINUOUSENV,C.ENVSIZE,C.CARSIZE,C.COUNTER)
             f.write(comments)
-            f.close()
-        for i in range(C.NBATCHESRL):
+        env = Env(*C.ENVSIZE, *C.CARSIZE)
+        for episode in range(C.NEPISODES):
             totalScore = 0
-            for _ in range(C.BATCHSIZE):
-                env = Env(*C.ENVSIZE, *C.CARSIZE)
+            # Play for a number of games equal to the episode size
+            for _ in range(C.EPSIZE):
                 game = Game(env, self, training=True)
                 game.play()
                 totalScore += game.maxscore
-            meanScoreBatch = totalScore/C.BATCHSIZE
-            print("Mean score for batch",i,":",meanScoreBatch)
-            if meanScoreBatch >= C.SCORETHRESHOLD:
+            meanScoreEpisode = totalScore/C.EPSIZE
+            if C.SAVESCORES:
+                f.write(str(meanScoreEpisode)+"\n")
+            print("Mean score for episode",episode,":",meanScoreEpisode)   
+            # stop the learning if the mean score overcomes the threshold             
+            if meanScoreEpisode >= C.SCORETHRESHOLD:
                 break
+        if C.SAVESCORES:
+            f.close()
+        
                  
     def __call__(self, *state):
         """

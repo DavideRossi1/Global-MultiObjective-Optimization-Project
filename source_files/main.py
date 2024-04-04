@@ -11,7 +11,7 @@ def main():
     """
     Main function of the game: plays the game and plots/renders the updates 
     """
-    # build the environment
+    # build the environment and the agent
     env = Env(*C.ENVSIZE, *C.CARSIZE)
     agent = buildAndExtractBestIndividual()
     # if desired, plot the environment and play the game
@@ -21,7 +21,7 @@ def main():
         plt.imshow(game.env.street, cmap='gray')
         _ = FuncAnimation(plt.gcf(), game.playStep, fargs=(), frames=10000000, interval=C.WAIT)
         plt.show()
-    # otherwise, just play the game
+    # otherwise, just play the game for a number of times
     else:
         for _ in range(C.NGAMES):
             game = Game(env, agent)

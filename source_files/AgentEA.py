@@ -3,9 +3,7 @@ import operator
 import random
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
 import pygraphviz as pgv
-import seaborn as sns
 
 from Env import Env
 from Game import Game
@@ -20,33 +18,38 @@ class AgentEA():
         individualPath (string, optional): the path of the file containing the individual to be imported. Defaults to None (build the individual from scratch)
     """
     def __init__(self, individualPath=None):
+        # Build all the tools needed to run the EA
         self.buildPset()
         creator.create("FitnessMax", base.Fitness, weights=(1.0,))
         creator.create("Individual", gp.PrimitiveTree, fitness=creator.FitnessMax, pset=self.pset)
         self.buildToolBox()
         self.buildStats()
         if individualPath is None:
+            # No individual to import, learn the agent from scratch
             self.bestIndividual = None
             self.bestIndividualCompiled = None
             self.learnAgent()   
         else:
+            # Import the agent from the specified file
             self.loadAgentFrom(individualPath)
         
     def compileBestIndividual(self):
         """
         Compile the best individual to obtain a function that can be used to play the game
         """
-        self.bestIndividualCompiled = self.toolbox.compile(self.bestIndividual, pset = self.pset)
+        self.bestIndividualCompiled = self.toolbox.compile(self.bestIndividual)
     
     def buildPset(self):
         """
-        Build the primitive set for the genetic programming. A state is a tuple of 5 elements:
-        - if the enemy car is in front of you (bool)
-        - the vertical distance between you and the enemy car (float)
-        - if the enemy car is on the left of you (bool)
-        - the distance between you and the closest obstacle on the left (float)
-        - the distance between you and the closest obstacle on the right (float)
+        Build the primitive set for the genetic programming. 
         """
+        # A state is a tuple of 5 elements:
+        # - if the enemy car is in front of you                 (bool)
+        # - the vertical distance between you and the enemy car (float)
+        # - if the enemy car is on the left of you              (bool)
+        # - the distance from the closest obstacle on the left  (float)
+        # - the distance from the closest obstacle on the right (float)
+        # The computation of the state results in a float value which is then converted to an action
         self.pset = gp.PrimitiveSetTyped("MAIN", [bool, float, bool, float, float], float, "IN")
 
         def protectedInv(x):
@@ -54,6 +57,7 @@ class AgentEA():
         def if_then_else(input, output1, output2):
             return output1 if input else output2
 
+        # Define the primitives
         self.pset.addPrimitive(operator.add, [float, float], float)
         self.pset.addPrimitive(operator.sub, [float, float], float)
         self.pset.addPrimitive(operator.mul, [float, float], float)
@@ -66,10 +70,6 @@ class AgentEA():
         self.pset.addPrimitive(if_then_else, [bool, float, float], float)
         self.pset.addPrimitive(operator.lt, [float, float], bool) # <
         self.pset.addPrimitive(operator.eq, [float, float], bool) # ==
-
-        #pset.addTerminal(False, bool)
-        #pset.addTerminal(True, bool)
-        #pset.addEphemeralConstant("rand101", partial(random.uniform,0,100),float)
 
     def buildToolBox(self):  
         """"
@@ -87,26 +87,41 @@ class AgentEA():
             Returns:
                 float: the fitness of the individual, given as the global reward obtained by it
             """
+            # I have done some tests computing the fitness as the average reward over 10 games,
+            # but results were not significantly different and the computation was a lot slower
+            #reward = 0
             individualCompiled = self.toolbox.compile(individual)
             env = Env(*C.ENVSIZE, *C.CARSIZE)
+            #for _ in range(10):
             game = Game(env, individualCompiled, training=True)
             game.play()
-            return game.globalReward,
+            #reward += game.globalReward
+            return game.globalReward,#reward/10,
         
+        # Use user-defined fitness to evaluate the individuals
         self.toolbox.register("evaluate", fitness)
+        # Use ramped half-and-half method to randomly generate the trees
         self.toolbox.register("expr", gp.genHalfAndHalf, pset=self.pset, min_=C.MINTREESIZE, max_=C.MAXTREESIZE)
+        # Initialize a single individual and the population as a list of individuals
         self.toolbox.register("individual", tools.initIterate, creator.Individual, self.toolbox.expr)
         self.toolbox.register("population", tools.initRepeat, list, self.toolbox.individual)
+        # Add a function to compile a readable tree into a usable Python function
         self.toolbox.register("compile", gp.compile, pset=self.pset)
+        # Define the tools used in the EA for selection, crossover and mutation
         self.toolbox.register("select", tools.selTournament, tournsize=C.TOURNAMENTSIZE)
         self.toolbox.register("mate", gp.cxOnePoint)
         self.toolbox.register("expr_mut", gp.genFull, min_=0, max_=2)
         self.toolbox.register("mutate", gp.mutUniform, expr=self.toolbox.expr_mut, pset=self.pset)
 
     def buildStats(self):
-        stats = tools.Statistics(lambda ind: ind.fitness.values)
-        stats_size = tools.Statistics(key=len)
-        self.mstats = tools.MultiStatistics(fitness=stats, size=stats_size)
+        """
+        Build the statistics to be computed during the EA
+        """
+        # Track both the fitness and the size of the individuals...
+        fitness = tools.Statistics(lambda ind: ind.fitness.values)
+        size = tools.Statistics(key=len)
+        self.mstats = tools.MultiStatistics(fitness=fitness, size=size)
+        # ...using the following functions
         self.mstats.register("min", np.min)
         self.mstats.register("avg", np.mean)
         self.mstats.register("max", np.max)
@@ -117,13 +132,14 @@ class AgentEA():
         Learn the agent using a Evolutionary Algorithm (EA) with the parameters specified in the Toolbox and in the Constants file
         """
         random.seed(314)
+        # Initialize the population and the hall of fame where to save the best individual
         pop = self.toolbox.population(n = C.POPSIZE)
         hof = tools.HallOfFame(1)
-        # if desired, save the scores in a file
+        # if desired, save the statistics in a file
         if C.SAVESCORES:
             self.repeatEA(hof)
-            self.plotStats(C.SAVESCORESPATH)
         else:
+            # simply run the EA to learn and individual
             algorithms.eaSimple(pop, self.toolbox, C.CXPROBABILITY, C.MUTPROBABILITY, C.NGENERATIONS, self.mstats, halloffame=hof, verbose=True)                
         self.bestIndividual = hof[0]
         self.compileBestIndividual()
@@ -131,29 +147,33 @@ class AgentEA():
     def repeatEA(self, hof):
         """
         Repeat the EA for a set number of times and saves the average statistics in the set file
+        
+        Args:
+            hof (HallOfFame): the hall of fame to store the best individual
         """
         # Write a header file to save info about the run
-        f=open(C.SAVESCORESPATH,'w')
+        f=open(C.SAVESCORESPATH + "csv",'w')
         comments="# Speed: {}, Boost: {}, ContEnv: {}, Env size: {}, Car size: {}, Counter: {}\n".format(C.SPEED,C.BOOST,C.CONTINUOUSENV,C.ENVSIZE,C.CARSIZE,C.COUNTER)
         f.write(comments)
         f.close()
         scoresList = []
-        for i in range(C.NEVALS):
-            print("\nEVALUATION", i+1, "OF", C.NEVALS)
+        for i in range(C.NREPS):
+            print("\nEVALUATION", i+1, "OF", C.NREPS)
             # Generate the population from scratch
             pop = self.toolbox.population(n = C.POPSIZE)
             # Reset the statistics
             self.buildToolBox()
             self.buildStats()
+            # Run the EA and return the logbook with the statistics
             pop, logbook = algorithms.eaSimple(pop, self.toolbox, C.CXPROBABILITY, C.MUTPROBABILITY, C.NGENERATIONS, self.mstats, halloffame=hof, verbose=True)
             logbook.header = "gen", "nevals", "fitness", "size"
             logbook.chapters["fitness"].header = "min", "avg", "max"
             logbook.chapters["size"].header = "min", "avg", "max"
             scoresList.append(self.convertLogBookToDataframe(logbook))
         # create a new dataframe with the mean values of the scores
-        meanScores = sum(scoresList)/C.NEVALS
+        meanScores = sum(scoresList)/C.NREPS
         # save the mean scores in the specified file
-        meanScores.to_csv(C.SAVESCORESPATH, mode='a', header=True, index=False)
+        meanScores.to_csv(C.SAVESCORESPATH + "csv", mode='a', header=True, index=False)
         
         
     def convertLogBookToDataframe(self, logbook):
@@ -174,62 +194,6 @@ class AgentEA():
         size    = pd.DataFrame(logbook.chapters["size"]).drop(columns = colsToDrop).rename(columns=dict(zip(cols, sizeCols)))
         return pd.concat([base, fitness, size], axis=1)   
         
-        
-    def plotStats(self, meanScoresFile):
-        """Plot the stats from the given file
-
-        Args:
-            meanScoresFile (string): the file where to read the stats
-        """
-        sns.set_theme()
-        data=pd.read_csv(meanScoresFile,header=1)
-        clrs = sns.color_palette("husl", 5)
-        fig, ax1 = plt.subplots()
-        x=data.loc[:,"gen"]
-        means = data.loc[:,"fitness_avg"]
-        std = data.loc[:,"fitness_std"]
-        meansize = data.loc[:,"size_avg"]
-        stdsize = data.loc[:,"size_std"]
-        with sns.axes_style("darkgrid"):
-            line1 = ax1.plot(x,means,'b-', label = "Fitness")
-            ax1.fill_between(x, means-std,means+std, alpha=0.5, facecolor='b')
-            ax1.set_xlabel("Generation")
-            ax1.set_ylabel("Fitness", color="b")
-            for tl in ax1.get_yticklabels():
-                tl.set_color("b")
-            ax2=ax1.twinx()
-            line2 = ax2.plot(x, meansize, "r-", label="Size")
-            ax2.fill_between(x, meansize-stdsize,meansize+stdsize, alpha=0.5, facecolor='r')
-            ax2.set_ylabel("Size", color="r")
-            for tl in ax2.get_yticklabels():
-                tl.set_color("r")
-            lns = line1 + line2
-            labs = [l.get_label() for l in lns]
-            ax1.legend(lns, labs) 
-        plt.show()
-        # meanScores = pd.read_csv(meanScoresFile, header=1)
-        # print(meanScores)
-        # gen = meanScores.loc[:,"gen"]
-        # fit_avg = meanScores.loc[:,"fitness_avg"]
-        # size_avg = meanScores.loc[:,"fitness_min"]
-        # fig, ax1 = plt.subplots()
-        # line1 = ax1.plot(gen, fit_avg, "b-", label="Average Fitness")
-        # ax1.set_xlabel("Generation")
-        # ax1.set_ylabel("Fitness", color="b")
-        # for tl in ax1.get_yticklabels():
-        #     tl.set_color("b")
-        # ax2 = ax1.twinx()
-        # line2 = ax2.plot(gen, size_avg, "r-", label="min fitness")
-        # ax2.set_ylabel("Size", color="r")
-        # for tl in ax2.get_yticklabels():
-        #     tl.set_color("r")
-        # lns = line1 + line2
-        # labs = [l.get_label() for l in lns]
-        # ax1.legend(lns, labs)
-        # plt.show()
-    
-    
-    
     
     def saveTreeImageIn(self,file):
         """

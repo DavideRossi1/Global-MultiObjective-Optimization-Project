@@ -24,7 +24,7 @@ MAXSCORE=1000
 
 # Integer. Number of points to be scored before increasing the speed of the enemy cars, 
 # hence increasing the difficulty. Set it to a high value to maintain the enemy speed constant:
-COUNTER=1000000  
+COUNTER=100000  
 
 # Couple of integers. Height and width of the environment:
 ENVSIZE=(10,10)
@@ -42,18 +42,18 @@ CARSIZE=(2,2)
 #######################################################
 
 # Boolean. If True, the environment is printed in the terminal at each step:
-PRINTSTEPS=False   
+PRINTSTEPS=True   
 
 # Boolean. If True, the environment is plotted and animated 
 # (the animation won't stop until the user closes the plot):
-PLOTSTEPS=False
+PLOTSTEPS=True
 
 # Integer. Time in milliseconds between each step in the case PLOTSTEPS=True. 
 # Increase it to slow down the animation:  
 WAIT=10
 
 # number of games to be played after the agent has been learned/imported:
-NGAMES=200        
+NGAMES=100        
    
    
    
@@ -65,7 +65,7 @@ NGAMES=200
 POPSIZE=200
 
 # Integer. Number of generations of EA
-NGENERATIONS=5
+NGENERATIONS=15
 
 # Integers. Minimum and maximum size for tree individuals used in EA
 MINTREESIZE=2
@@ -76,10 +76,10 @@ CXPROBABILITY=0.5
 MUTPROBABILITY=0.2
 
 # Integer. Tournament size for tournament selection
-TOURNAMENTSIZE=7 
+TOURNAMENTSIZE=10
 
 # Integer. Number of times the EA is repeated to evaluate the learning process
-NEVALS = 5
+NREPS=10
 
 
 
@@ -87,17 +87,17 @@ NEVALS = 5
 #################### RL PARAMETERS ####################
 #######################################################
 
-# Integer. Maximum number of game batches to play before stopping the learning
-NBATCHESRL = 100
+# Integer. Maximum number of episodes to play before stopping the learning
+NEPISODES = 100
 
-# Integer. Batch size for learning.
-BATCHSIZE = 10
+# Integer. Size of a single episode for learning.
+EPSIZE = 10
 
-# Integer. If the batch mean score overcomes this threshold, the learning is stopped
-SCORETHRESHOLD = 500
+# Integer. If the episode average score overcomes this threshold, the learning is stopped
+SCORETHRESHOLD = 1000
 
 # Agent algorithm to be used for training: SARSA, Qlearning, ExpectedSARSA:
-AGENT="SARSA"      
+AGENT="ExpectedSARSA"      
 
 # Double in [0,1]. Discount factor for temporal difference learning:
 GAMMA=1            
@@ -122,7 +122,7 @@ EPSDECAY=0.90
 # Note: all paths and names of the files are automatically created according to parameters set before.
  
 # Boolean. Decide if to import an already trained agent from a file
-IMPORTAGENT=False
+IMPORTAGENT=True
 
 # Boolean. Decide if to save the agent in a file, in order to use it later:
 EXPORTAGENT=False
@@ -132,7 +132,7 @@ EXPORTAGENT=False
 EXPORTTREE=False
 
 # Boolean. Decide if to save the scores in a file:   
-SAVESCORES=True                    
+SAVESCORES=False                    
           
 
 
@@ -147,14 +147,16 @@ SAVESCORES=True
      
 
 # routine to set the right path for files
+agent = "AgentGA/" if USEGA else "AgentRL/" 
 isContSpace = "ContinuousSpace/" if CONTINUOUSENV else "StandardSpace/"
-agent = ("AgentGA/" if USEGA else "AgentRL/") 
+boost = "boost/" if BOOST>1 else "noBoost/" 
+counter = "counter/" if COUNTER<MAXSCORE else "noCounter/"
 if USEGA:
-    fileName = "pop{}ngen{}toursz{}.".format(POPSIZE,NGENERATIONS,TOURNAMENTSIZE)
+    fileName = "pop{}_ngen{}_tsz{}.".format(POPSIZE,NGENERATIONS,TOURNAMENTSIZE)
 else:
-    fileName = "nbat{}bsz{}thr{}ag{}.".format(NBATCHESRL,BATCHSIZE,SCORETHRESHOLD,AGENT)
-agentPath = "agents/" + agent + isContSpace + fileName
-scorePath = "scores/" + agent + isContSpace + fileName
+    fileName = "neps{}_epsz{}_thr{}_{}.".format(NEPISODES,EPSIZE,SCORETHRESHOLD,AGENT)
+agentPath = "agents/" + agent + isContSpace + boost + counter + fileName
+scorePath = "scores/" + agent + isContSpace + boost + counter + fileName
 if IMPORTAGENT:
     IMPORTAGENTPATH = agentPath + "txt"
 if EXPORTAGENT:
@@ -162,4 +164,4 @@ if EXPORTAGENT:
 if EXPORTTREE:
     EXPORTTREEPATH  = agentPath + "pdf"
 if SAVESCORES:
-    SAVESCORESPATH  = scorePath + "txt"
+    SAVESCORESPATH  = scorePath

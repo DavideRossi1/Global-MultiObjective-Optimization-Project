@@ -1,0 +1,1 @@
+mul(sub(IN1, IN4), mul(add(IN4, mul(IN4, add(IN1, IN3))), sub(IN3, if_then_else(IN0, IN1, IN3))))

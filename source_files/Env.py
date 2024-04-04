@@ -70,21 +70,28 @@ class Env:
         Returns:
             int, int: left and right enemy distance
         """
+        # The following code computes the distance between the left side of your car and the right side of the enemy car,
+        # and the distance between the right side of your car and the left side of the enemy car.
+        # These distances are quite hard to compute and some reasoning is needed to understand the code.
         if C.CONTINUOUSENV:
             leftEnemyDistance  = (self.playerPosition - self.enemy_x_position)%self.envWidth - self.carWidth
             rightEnemyDistance = (self.enemy_x_position - self.playerPosition)%self.envWidth - self.carWidth
         else:
             isEnemyLeft = self.enemy_x_position < self.playerPosition
+            # Note: in case of std environment, if the enemy is on the left then the right distance is the whole width of the environment
+            # (that is like infinity, since everything is strictly nearer than it), and vice versa
             leftEnemyDistance  = (self.playerPosition - self.enemy_x_position) - self.carWidth if isEnemyLeft else self.envWidth
             rightEnemyDistance = (self.enemy_x_position - self.playerPosition) - self.carWidth if not isEnemyLeft else self.envWidth
         return leftEnemyDistance, rightEnemyDistance
     
     def wallDistance(self):
-        """Return the distance from left and right wall
+        """
+        Return the distance from left and right wall
 
         Returns:
-            int, int: left and right enemy distance
+            int, int: left and right wall distance
         """
+        # If the environment is continuous, the distance from the walls is the whole width of the environment (which is like infinity)
         leftWallDistance  = self.envWidth if C.CONTINUOUSENV else self.playerPosition
         rightWallDistance = self.envWidth if C.CONTINUOUSENV else self.envWidth - (self.playerPosition + self.carWidth)
         return leftWallDistance, rightWallDistance
@@ -98,7 +105,7 @@ class Env:
             enemyspeed: the speed of the enemy car
             
         Returns:
-            bool, int: if the game is over (enemy crashed against the player car) and the score increase
+            bool, int: if the game is over (enemy crashed against the player car) and the score increase (0 or 1)
         """
         gameover = False
         scoreIncrease = 0
@@ -114,7 +121,7 @@ class Env:
         else:   
             # check the horizontal distance between the two cars
             if min(*self.enemyDistance()) < 0:   
-            # the two cars are one in front of the other: crash!
+            # the two cars are one in front of the other: they will crash!
                 gameover = True
             else:       
                 if futurePosition > 0: 
@@ -143,7 +150,7 @@ class Env:
     
     def moveCarStdEnv(self, action, carspeed): 
         """
-        Move your car along the horizontal axis, following the given action, and return the game status
+        Move your car along the horizontal axis, following the given action, and return the game status (standard environment)
         
         Args:
             action (int): the action to take
@@ -203,7 +210,7 @@ class Env:
             False: the game is never over in this case, car can't crash with the wall
         """
         self.renderCar(0)
-        # What happens is basically the same as in the movecar function, but the car can exit 
+        # What happens is basically the same as in the std environment, but the car can exit 
         # the environment from one side and re-enter from the opposite side, hence the position 
         # of the car is computed as the remainder of the division by the width of the environment 
         # and no crash with the wall is possible
@@ -221,35 +228,6 @@ class Env:
         self.renderCar(1)
         # game is never over in this case: you can't crash with the wall
         return False
-    
-    def __str__(self): 
-        """
-        Print the environment on terminal
-        """
-        # https://www.w3.org/TR/xml-entity-names/025.html
-        res = "┏"
-        for i in range(self.envWidth-1):
-            res += "━━━┳"
-        res += "━━━┓\n"
-        for i in range(self.envHeight):
-            for j in range(self.envWidth):
-                res += "┃ █ " if self.street[i,j] == 1 else "┃   "
-            res += "┃\n"
-            if i!=self.envHeight-1:
-                res += "┣"
-                for i in range(self.envWidth-1):
-                    res += "━━━╋"
-                res += "━━━┫\n"
-            else: 
-                res += "┗"
-                for i in range(self.envWidth-1):
-                    res += "━━━┻"
-                res += "━━━┛\n"
-             
-        
-        # if you also want the score to be printed at each step, uncomment the following line
-        #res.join('Score: ',self.score,'\n')  
-        return res
     
     def bin(self, distance):
         """
@@ -319,3 +297,29 @@ class Env:
             np array: the state of the environment
         """
         return np.array((*self.frontObstacles(), *self.sideObstacles()), dtype=int)
+    
+    def __str__(self): 
+        """
+        Print the environment on terminal as a grid
+        """
+        # copy paste symbols: https://www.w3.org/TR/xml-entity-names/025.html
+        res = "┏"
+        for i in range(self.envWidth-1):
+            res += "━━━┳"
+        res += "━━━┓\n"
+        for i in range(self.envHeight):
+            for j in range(self.envWidth):
+                res += "┃ █ " if self.street[i,j] == 1 else "┃   "
+            res += "┃\n"
+            if i!=self.envHeight-1:
+                res += "┣"
+                for i in range(self.envWidth-1):
+                    res += "━━━╋"
+                res += "━━━┫\n"
+            else: 
+                res += "┗"
+                for i in range(self.envWidth-1):
+                    res += "━━━┻"
+                res += "━━━┛\n"
+        return res
+    
