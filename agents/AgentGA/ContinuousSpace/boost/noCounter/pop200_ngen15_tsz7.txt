@@ -1,0 +1,1 @@
+sub(if_then_else(not_(IN0), protectedInv(IN3), sub(IN4, IN4)), protectedInv(IN3))

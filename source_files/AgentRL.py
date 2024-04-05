@@ -73,11 +73,34 @@ class AgentRL():
         """
         Learn the agent using the TDControl model
         """
-        # Write a header in the file where the scores are saved
         if C.SAVESCORES:
-            f=open(C.SAVESCORESPATH + "txt",'w')
-            comments="# Speed: {}, Boost: {}, ContEnv: {}, Env size: {}, Car size: {}, Counter: {}\n".format(C.SPEED,C.BOOST,C.CONTINUOUSENV,C.ENVSIZE,C.CARSIZE,C.COUNTER)
+            self.repeatRL()
+        else:
+            self.singleRL()
+   
+    
+    def repeatRL(self):
+        """
+        Repeat the RL for a set number of times and save the scores in a file
+        """
+        env = Env(*C.ENVSIZE, *C.CARSIZE)
+        f=open(C.SAVESCORESPATH + "csv",'w')        
+        # Write a header in the file where the scores are saved
+        comments="# Speed: {}, Boost: {}, ContEnv: {}, Env size: {}, Car size: {}, Counter: {}\n".format(C.SPEED,C.BOOST,C.CONTINUOUSENV,C.ENVSIZE,C.CARSIZE,C.COUNTER)
+        for episode in range(C.NEPISODES):
+            print("\nEVALUATION", episode+1, "OF", C.NEPISODES)
             f.write(comments)
+            self.Qvalues = np.zeros( (*self.spaceSize, self.actionSize) )
+            # Play for a number of games equal to the episode size
+            for _ in range(C.EPSIZE):
+                game = Game(env, self, training=True)
+                game.play()
+                f.write(str(game.maxscore)+"\n")
+
+    def singleRL(self):
+        """
+        Repeat the RL for a set number of times and stop the learning if the mean score overcomes the threshold
+        """
         env = Env(*C.ENVSIZE, *C.CARSIZE)
         for episode in range(C.NEPISODES):
             totalScore = 0
@@ -87,14 +110,10 @@ class AgentRL():
                 game.play()
                 totalScore += game.maxscore
             meanScoreEpisode = totalScore/C.EPSIZE
-            if C.SAVESCORES:
-                f.write(str(meanScoreEpisode)+"\n")
             print("Mean score for episode",episode,":",meanScoreEpisode)   
             # stop the learning if the mean score overcomes the threshold             
             if meanScoreEpisode >= C.SCORETHRESHOLD:
                 break
-        if C.SAVESCORES:
-            f.close()
         
                  
     def __call__(self, *state):

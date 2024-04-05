@@ -1,0 +1,1 @@
+if_then_else(not_(and_(IN0, IN0)), mul(sub(IN1, IN1), sub(IN3, if_then_else(lt(if_then_else(IN0, IN4, IN1), if_then_else(IN2, IN1, IN1)), IN1, IN4))), mul(protectedInv(add(if_then_else(IN0, add(IN4, IN3), IN4), if_then_else(IN0, IN4, IN3))), protectedInv(IN4)))

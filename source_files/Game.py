@@ -115,14 +115,14 @@ class Game():
             reward = -1000
         else:
             # reward in case of no crash is given by 4 terms:
-            # 1) how far you are from the enemy car (normalized by the height of the environment): the farther you are, the better the reward
-            # 2) how close you are to the center of the environment (only for std environment): the closer you are, the better the reward
-            # 3) if you moved, you get a slightly negative reward (to encourage the agent to move only when necessary and to stand still when waiting for the enemy)
+            # 1) if you are in front of the enemy you get a negative reward
+            # 2) if you are closer to the center of the environment, you get a better reward (only for std env)
+            # 3) if you moved, you get a slightly negative reward (to encourage the agent to move only if really needed and to stand still when waiting for the enemy)
             # 4) if you used the boost, you get a negative reward (to discourage the use of the it and only use it in case of emergency)
-            rewardForEnemy = min(*self.env.enemyDistance())/float(C.ENVSIZE[1])
+            rewardForEnemy = -10 if self.env.getState()[0] else +1     #old version: min(*self.env.enemyDistance())/float(C.ENVSIZE[1])
             distFromCenter = abs(self.env.playerPosition-C.ENVSIZE[1]/2)
             rewardForCenter = 0 if C.CONTINUOUSENV else 2/(1+distFromCenter)
-            rewardForMoving = 0 if (action==0) else -1
+            rewardForMoving = 1 if (action==0) else 0
             rewardForBoost = -100  if action==3 or action==4 else 0
             reward = rewardForEnemy + rewardForCenter + rewardForMoving + rewardForBoost
             # if the score is greater than the max score, the game is over

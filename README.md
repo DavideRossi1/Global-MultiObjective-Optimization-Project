@@ -55,7 +55,7 @@ export LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libstdc++.so.6
 The agent have been tested with many different parameters and configurations. In particular, four main parameters can be set in the [Constants file](source_files/Constants.py), and setting the will also automatically set the paths for the agents and the scores files. The parameters are the following:
 - `USEGA`: if set to `True`, the game will use a tree-based genetic programming algorithm to learn the agent and/or to play it (depending if you chose to import an already learnt agent or to learn it from scratch), otherwise it will use a Reinforcement Learning algorithm (more specifically, a Temporal Difference algorithm, with SARSA, Q-Learning or Expected SARSA approach according to the parameters set);
 - `CONTINUOUSENV`: if set to `True`, the game will use a continuous state space, meaning that there will be no walls and the cars will be able to cross the boundary and reappear on the opposite side of the screen;
-- `BOOST`: if set to a value greater than 1, the player car will have a boost ability, which will allow to move faster in order to dodge the enemy.
+- `BOOST`: if set to a value greater than 1, the player car will have a boost ability, which will allow to move faster in order to dodge the enemy;
 - `COUNTER`: each time the score reaches this value, the enemy cars will be faster, hence the game will be harder, and the counter will be reset: in this way you can simulate an increasing difficulty.
 
 
@@ -91,3 +91,8 @@ Finally, we can have a look at some animations of the agents playing the game:
 
 <img src="scores/AgentRL/StandardSpace/noBoost/counter/neps500_epsz10_thr800_ExpectedSARSA.gif"/>
 
+
+## Other notes
+The folder [routines](routines/) contains some scripts used to automatize the learning process and to plot the results: 
+- the two bash scripts allow to run all the tests for both agents, both environments, with 2 different boosts and 2 different counters, and to save the results in the corresponding folders (some default parameters have been used to run the tests), and can be run with `bash runEA.sh` and `bash runRL.sh` respectively;
+- the file [plots.ipynb](routines/plots.ipynb) allows to update the plots of the results, and to save them in the corresponding folders.
