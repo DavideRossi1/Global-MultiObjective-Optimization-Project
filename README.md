@@ -61,7 +61,7 @@ The agent have been tested with many different parameters and configurations. In
 
 ## Results
 
-Some results obtained during the development of the project are available in the [scores](scores/) folder, subdivided acoording to the previous parameters. The corresponding learned agents are in the [agents](agents/) folder, which has the same structure. We can have a look at some of them:
+Some results obtained during the development of the project are available in the [scores](scores/) folder, subdivided acoording to the previous parameters. The corresponding learned agents are in the [agents](agents/) folder, which has the same structure. We can have a look at some of the most interesting ones:
 
 ### Genetic Algorithm
 
@@ -69,19 +69,19 @@ Some results obtained during the development of the project are available in the
 
 This is the average fitness obtained by a tree based Genetic Algorithm agent, with 200 as starting population, 15 generations and 7 as tournament size, and no boost nor increasing difficulty. We can see that the rewards are increasing, while the trees size converges towards about 35.
 
-![RL-Expected SARSA, no boost, counter](scores/AgentGA/StandardSpace/noBoost/counter/pop200_ngen15_tsz10.png)
+![RL-Expected SARSA, boost, counter](scores/AgentGA/StandardSpace/boost/counter/pop200_ngen15_tsz7.png)
 
-In this case instead we have an increasing difficulty. As we can see the fitness is still increasing, but it is lower than the previous case, since the agent has much more difficulty in dodging the enemies when their speed increases.
+In this case instead we have an increasing difficulty with boost activated. As we can see the fitness is still increasing, but it is lower than the previous case, since the agent has much more difficulty in dodging the enemies when their speed increases.
 
 ### Reinforcement Learning
 
-![RL-Expected SARSA, no boost, no counter](scores/AgentRL/StandardSpace/noBoost/noCounter/neps100_epsz10_thr1000_ExpectedSARSA.png)
+![RL-Expected SARSA, no boost, no counter](scores/AgentRL/StandardSpace/noBoost/noCounter/neps10_epsz200_thr1000_ExpectedSARSA.png)
 
 This is the mean score obtained by an Expected SARSA RL agent, with no boost and no increasing difficulty. We can clearly see that the agent is able to learn how to play the game after a few generations.
 
-![RL-Expected SARSA, no boost, counter](scores/AgentRL/StandardSpace/noBoost/counter/neps500_epsz10_thr800_ExpectedSARSA.png)
+![RL-Expected SARSA, no boost, counter](scores/AgentRL/ContinuousSpace/noBoost/counter/neps10_epsz100_thr1000_ExpectedSARSA.png)
 
-In this case we also have an Expected SARSA RL agent, but we enabled the increasing difficulty. The agent is still able to learn how to play the game, but it is not able to reach the perfect score since after some time the difficulty becomes too high for the agent to handle.
+In this case we also have an Expected SARSA RL agent, but we enabled the increasing difficulty and we moved to the continuous environment. The agent is still able to learn how to play the game, but it is not able to reach the perfect score since after some time the difficulty becomes too high for the agent to handle.
 
 Finally, we can have a look at some animations of the agents playing the game:
 
